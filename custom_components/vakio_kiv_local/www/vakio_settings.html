@@ -1,0 +1,397 @@
+<!-- APTIME: прошивка не сообщает текущее значение. По сведениям техподдержки Vakio, значение по умолчанию — 15 минут; подстановка APTIME=0 намеренная. -->
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VAKIO · Настройки устройства</title>
+<style>
+:root{font:16px/1.5 system-ui,sans-serif;color:#18333b;background:#eff4f4;color-scheme:light}*{box-sizing:border-box}body{margin:0}main{max-width:1040px;margin:40px auto;padding:0 24px 48px}header{display:flex;justify-content:space-between;align-items:center;gap:16px}h1{font-size:30px;letter-spacing:-1px;margin:4px 0}h2{font-size:21px;margin:0 0 16px}h3{font-size:17px}.brand{color:#347a78;font-size:13px;font-weight:750;letter-spacing:3px}.muted,small{color:#576d75}p{margin:8px 0 16px}.card{background:white;border:1px solid #d8e3e5;border-radius:16px;padding:24px;margin:20px 0;box-shadow:0 3px 16px #18333b05}.connect{display:flex;gap:12px;align-items:end;flex-wrap:wrap}.connect label{flex:1;min-width:220px}label{display:block;font-weight:600;font-size:14px}input,select,textarea{font:inherit;color:inherit;border:1px solid #b7cbce;border-radius:8px;padding:10px 12px;width:100%;margin-top:6px;background:white}input:focus,select:focus,button:focus-visible,textarea:focus{outline:3px solid #74c5bf;outline-offset:2px}button{font:inherit;font-weight:650;border:1px solid #bacfd0;border-radius:8px;padding:11px 18px;cursor:pointer;background:white;color:#214c54}button.primary{background:#176b65;color:white;border-color:#176b65}button.danger{color:#a32232;border-color:#d99da5}button:disabled{opacity:.5;cursor:default}button:hover:enabled{filter:brightness(.96)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}.field{margin-bottom:20px}.field small{display:block;margin-top:6px;font-weight:400}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.check{display:flex;align-items:center;gap:9px;font-weight:400}.check input{width:auto;margin:0}.pill{font-size:13px;background:#e9f2f1;border-radius:40px;padding:6px 12px;white-space:nowrap}nav{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0 0}nav button[aria-selected=true]{background:#183e47;color:white;border-color:#183e47}.panel[hidden],[hidden]{display:none!important}.actions{border-top:1px solid #e1e9e9;padding-top:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.notice{border-left:4px solid #2b8880;background:#e8f4f1;padding:14px 18px;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0}.notice.error{border-color:#ba3943;background:#fff0f0;color:#80232c}.notice.warn{border-color:#b98522;background:#fff7e5;color:#775416}.notice.info{border-color:#5c879c;background:#edf4fa}.log{max-height:180px;overflow:auto;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}details summary{cursor:pointer;color:#46636b}code{font-size:.88em;overflow-wrap:anywhere}textarea.command{font:13px/1.5 monospace;min-height:110px;resize:vertical}.subtle{font-size:13px}.state{font-size:14px;color:#526970}.footer{font-size:13px;margin-top:20px}fieldset{border:0;margin:0;padding:0;min-width:0}fieldset:disabled{opacity:.65}.password{display:flex;gap:8px;align-items:end}.password button{font-size:13px;padding:11px}.password input{min-width:0}.unknown{background:#fff7e5;padding:10px;border-radius:6px;font-size:13px}.reset{margin-top:28px;border-top:1px solid #e1e9e9;padding-top:18px}@media(max-width:650px){main{margin:20px auto;padding:0 16px 32px}.card{padding:18px}header{align-items:start}.grid{grid-template-columns:1fr;gap:0}h1{font-size:25px}.connect button{width:100%}.pill{font-size:11px}}
+</style>
+</head>
+<body>
+<main>
+<header><div><div class="brand">VAKIO / KIV SMART</div><h1>Настройки устройства</h1><p class="muted">Локальный интерфейс без изменения прошивки</p></div><span class="pill" id="connection">Не подключено</span></header>
+<section class="card" id="launcher" hidden>
+<h2>Запуск локального интерфейса</h2>
+<p>Браузер не разрешает этому файлу читать ответы устройства напрямую. В файле уже есть небольшой локальный сервер: он передаёт запросы между интерфейсом и устройством.</p>
+<ol><li>Нужен Python 3. Никакие дополнительные пакеты не требуются.</li><li>Выполните команду ниже в терминале. Если файл перемещён, укажите его новый путь.</li><li>Откроется этот интерфейс. Держите терминал открытым; для завершения нажмите Ctrl+C.</li></ol>
+<label>Команда запуска<textarea class="command" id="command" readonly spellcheck="false"></textarea></label>
+<p class="subtle">Сервер слушает только этот компьютер. Пароли не записываются в файл и не сохраняются в браузере. Передача устройству идёт по HTTP, как в его штатном интерфейсе.</p>
+</section>
+<section class="card"><div class="connect"><label>IPv4-адрес устройства<input id="device" value="192.168.1.166" placeholder="192.168.1.166" autocomplete="off" spellcheck="false"></label><button class="primary" id="load" type="button">Подключиться и загрузить</button><a id="original" href="http://192.168.1.166/" target="_blank" rel="noreferrer">Штатный интерфейс ↗</a></div><p class="subtle" style="margin-bottom:0">Введите адрес самого устройства в вашей сети. Настройки загружаются при подключении.</p></section>
+<div id="message" class="notice info" role="status" aria-live="polite">Задайте адрес устройства и загрузите настройки.</div>
+<nav role="tablist" aria-label="Разделы настроек">
+<button role="tab" id="tab-wifi" aria-selected="true" aria-controls="panel-wifi" data-tab="wifi" type="button">Сеть Wi-Fi</button>
+<button role="tab" id="tab-ap" aria-selected="false" aria-controls="panel-ap" data-tab="ap" type="button">Точка доступа</button>
+<button role="tab" id="tab-mqtt" aria-selected="false" aria-controls="panel-mqtt" data-tab="mqtt" type="button">MQTT</button>
+<button role="tab" id="tab-general" aria-selected="false" aria-controls="panel-general" data-tab="general" type="button">Общие настройки</button>
+</nav>
+<form id="settings" class="card" autocomplete="off" novalidate>
+<fieldset id="fields" disabled>
+<section id="panel-wifi" class="panel" role="tabpanel" aria-labelledby="tab-wifi"><h2>Сеть Wi-Fi</h2><div class="field"><label>Имя сети (SSID)<input name="SSID" maxlength="64" spellcheck="false"></label></div><div class="field"><label>Пароль сети</label><div class="password"><input name="WIFIPASSWORD" type="password" maxlength="64" aria-label="Пароль Wi-Fi" autocomplete="new-password"><button type="button" data-password="WIFIPASSWORD">Показать</button></div></div><p class="state" id="wifi-status">Статус подключения неизвестен</p><p class="subtle">При изменении сети устройство может отключиться и получить другой IP. В этом случае укажите новый адрес после подключения.</p></section>
+<section id="panel-ap" class="panel" role="tabpanel" aria-labelledby="tab-ap" hidden><h2>Точка доступа</h2><div class="field"><label>Имя сети (SSID)<input name="SSIDAP" maxlength="64" spellcheck="false"></label></div><div class="field"><label>Пароль точки доступа</label><div class="password"><input name="WIFIPASSWORDAP" type="password" maxlength="64" aria-label="Пароль точки доступа" autocomplete="new-password"><button type="button" data-password="WIFIPASSWORDAP">Показать</button></div></div><div class="field"><label>Выключать точку доступа через<select name="APTIME"><option value="0">15 минут</option><option value="1">60 минут</option><option value="2">Никогда</option></select></label></div><p class="unknown" id="ap-note" hidden>Прошивка не сообщает текущее время. По умолчанию выбраны 15 минут; это значение будет отправлено при сохранении настроек.</p></section>
+<section id="panel-mqtt" class="panel" role="tabpanel" aria-labelledby="tab-mqtt" hidden><h2>MQTT</h2>
+<div class="field"><label>Сервер для подключения<select name="choose-type-mqtt"><option value="0">Vakio</option><option value="1">Свой сервер</option></select></label></div>
+<div id="custom-mqtt"><div class="grid"><div class="field"><label>Адрес MQTT-сервера<input name="MQTTNAME" maxlength="128" placeholder="192.168.1.10 или mqtt.example.org" spellcheck="false"></label><small>Имя или IP без mqtt://, пути и порта.</small></div><div class="field"><label>Порт<input name="MQTTPORT" inputmode="numeric" maxlength="5" placeholder="1883"></label></div></div>
+<div class="grid"><div class="field"><label>Логин<input name="MQTTLOGIN" maxlength="64" spellcheck="false" autocomplete="off"></label></div><div class="field"><label>Пароль</label><div class="password"><input name="MQTTPASSWORD" type="password" maxlength="64" aria-label="Пароль MQTT" autocomplete="new-password"><button type="button" data-password="MQTTPASSWORD">Показать</button></div></div></div></div>
+<div class="field"><label>Базовый топик<input name="topic" maxlength="30" spellcheck="false"></label><small>Штатная форма ограничивает топик 30 символами. Обработка специальных символов прошивкой неизвестна.</small></div>
+<p class="state" id="mqtt-status">Статус подключения неизвестен</p></section>
+<section id="panel-general" class="panel" role="tabpanel" aria-labelledby="tab-general" hidden><h2>Общие настройки</h2><div class="field"><label>Режим работы<select name="choose-type-mode"><option value="0">Ручной</option><option value="1">Автоматический</option></select></label></div><div class="field"><label>Температура для автоматического режима, °C<input name="auto_temp" inputmode="numeric" maxlength="2"></label></div><div class="reset"><h3>Заводские настройки</h3><p class="subtle">Сброс может удалить настройки сети и MQTT. Устройство может стать недоступным по текущему адресу.</p><button class="danger" id="reset" type="button">Сбросить настройки…</button></div></section>
+<div id="save-message" class="notice info" role="alert" aria-live="assertive" hidden></div>
+<div class="actions"><button type="submit" class="primary" id="save">Сохранить изменения</button><button type="button" id="refresh">Проверить / перечитать</button><span id="dirty" class="subtle">Нет изменений</span></div>
+</fieldset></form>
+<details class="card"><summary>Диагностика и ограничения</summary><p class="subtle">Загрузка: GET / → чтение полей штатной формы. Сохранение: POST /newdata с JSON, как в оригинале. Отправляются все известные настройки; если время точки доступа неизвестно, по умолчанию отправляются 15 минут. После ответа 200 значения считываются повторно. Подключение к MQTT и применение настроек оцениваются только по тому, что сообщает прошивка. Подтвердить сохранность после перезагрузки можно только отдельной проверкой после перезапуска устройства.</p><p class="subtle">При тайм-ауте сохранения интерфейс автоматически перечитывает настройки и сравнивает их с отправленными. Сам запрос сохранения не повторяется: устройство могло его принять. Пароли и содержимое запросов в журнал не попадают.</p><div class="log" id="log" aria-label="Журнал операций"></div></details>
+<p class="footer muted">Работает с форматом web-интерфейса VAKIO KivSmart, проверенным 27 октября 2026 года. При несовместимой прошивке сохранение блокируется.</p>
+</main>
+<script>
+'use strict';
+const TOKEN = '__LOCAL_TOKEN__';
+const $ = id => document.getElementById(id);
+const names = ['SSID','WIFIPASSWORD','SSIDAP','WIFIPASSWORDAP','APTIME','choose-type-mqtt','MQTTNAME','MQTTPORT','MQTTLOGIN','MQTTPASSWORD','topic','choose-type-mode','auto_temp'];
+const labels = {SSID:'Имя сети Wi-Fi',WIFIPASSWORD:'Пароль Wi-Fi',SSIDAP:'Имя точки доступа',WIFIPASSWORDAP:'Пароль точки доступа',APTIME:'Время точки доступа','choose-type-mqtt':'Выбор MQTT-сервера',MQTTNAME:'Адрес MQTT',MQTTPORT:'Порт MQTT',MQTTLOGIN:'Логин MQTT',MQTTPASSWORD:'Пароль MQTT',topic:'Топик','choose-type-mode':'Режим работы',auto_temp:'Температура'};
+let baseline = null, loadedIp = null, busy = false, apKnown = false, apTouched = false, uncertain = false;
+const field = name => $('settings').elements.namedItem(name);
+const value = name => field(name).value;
+function tell(text, kind='info') {
+ for(const id of ['message','save-message']) {
+  $(id).textContent=text; $(id).className='notice '+kind; $(id).hidden=false;
+ }
+ if((kind==='error' || kind==='warn') && baseline) $('save-message').scrollIntoView({block:'nearest'});
+}
+function selectTab(name) {
+ for(const tab of document.querySelectorAll('[data-tab]')) tab.setAttribute('aria-selected',String(tab.dataset.tab===name));
+ for(const panel of document.querySelectorAll('.panel')) panel.hidden=panel.id!=='panel-'+name;
+}
+function invalid(name,text) {
+ const error=new Error(text); error.fieldName=name; throw error;
+}
+function showError(error) {
+ if(error.fieldName) {
+  const input=field(error.fieldName);
+  selectTab(input.closest('.panel').id.slice(6));
+  input.setAttribute('aria-invalid','true'); input.setAttribute('aria-describedby','save-message'); input.focus();
+ }
+ tell(error.message,'error');
+}
+function log(text) { const line=document.createElement('div'); line.textContent=new Date().toLocaleTimeString('ru-RU')+' · '+text; $('log').prepend(line); while($('log').children.length>30) $('log').lastChild.remove(); }
+function ipValue() {
+ const ip=$('device').value.trim().replace(/^http:\/\//i,'').replace(/\/$/,'');
+ const parts=ip.split('.');
+ if(parts.length!==4 || parts.some(p=>!/^\d{1,3}$/.test(p)||Number(p)>255)) throw Error('Введите IPv4-адрес устройства, например 192.168.1.166.');
+ const canonical=parts.map(Number).join('.');
+ if(!(Number(parts[0])===10 || Number(parts[0])===192 && Number(parts[1])===168 || Number(parts[0])===172 && Number(parts[1])>=16 && Number(parts[1])<=31)) throw Error('Используйте локальный адрес: 10.x.x.x, 172.16–31.x.x или 192.168.x.x.');
+ return canonical;
+}
+function snapshot() { return Object.fromEntries(names.map(n=>[n,value(n)])); }
+function changes() { return baseline ? names.filter(n=>value(n)!==baseline[n] || n==='APTIME' && apTouched && !apKnown) : []; }
+function update() {
+ $('custom-mqtt').hidden=value('choose-type-mqtt')!=='1';
+ const changed=changes();
+ $('dirty').textContent=uncertain ? 'Сначала перечитайте настройки: результат сохранения не подтверждён.' : changed.length ? 'Изменено полей: '+changed.length : 'Нет изменений';
+ $('save').disabled=busy || !baseline || !changed.length || uncertain;
+}
+function lock(on) { $('settings').setAttribute('aria-busy',String(on)); busy=on; $('load').disabled=on; $('device').disabled=on; $('fields').disabled=on || !baseline; update(); }
+async function request(ip, method='GET', data=null, onWait=null) {
+ if(location.protocol==='file:') throw Error('Сначала запустите локальный сервер командой в верхней части страницы.');
+ const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),18000);
+ const started=Date.now();
+ const progress=onWait ? setInterval(()=>onWait(Math.floor((Date.now()-started)/1000)),1000) : null;
+ try {
+  const response=await fetch('/api/device?ip='+encodeURIComponent(ip),{method,headers:{'X-Local-Token':TOKEN,...(data?{'Content-Type':'application/json'}:{})},body:data?JSON.stringify(data):null,signal:controller.signal,cache:'no-store',credentials:'omit'});
+  let result;
+  try { result=await response.json(); } catch { throw Error('Локальный сервер вернул некорректный ответ. Перезапустите его.'); }
+  if(!response.ok) throw Error(result.error || 'Ошибка локального сервера: HTTP '+response.status);
+  if(result.status!==200) throw Error('Устройство ответило HTTP '+result.status+' '+(result.reason||'')+'. Настройки не подтверждены.');
+  return result;
+ } catch(e) {
+  if(e.name==='AbortError') throw Error('Время ожидания истекло. Проверьте питание, адрес и подключение к сети.');
+  if(e instanceof TypeError) throw Error('Нет связи с локальным сервером. Проверьте, что он запущен и терминал открыт.');
+  throw e;
+ } finally { clearTimeout(timer); if(progress!==null) clearInterval(progress); }
+}
+function parse(html) {
+ const doc=new DOMParser().parseFromString(html,'text/html');
+ const form=doc.querySelector('form#form');
+ if(!form) throw Error('Ответ не похож на страницу настроек VAKIO: форма не найдена. Сохранение заблокировано.');
+ const result={};
+ for(const name of names) {
+  const els=Array.from(form.elements).filter(el=>el.name===name);
+  if(!els.length) throw Error('Прошивка несовместима: отсутствует поле «'+labels[name]+'». Сохранение заблокировано.');
+  if(els[0].type==='radio') {
+   const selected=els.find(el=>el.checked);
+   if(!selected) throw Error('Прошивка не сообщила значение «'+labels[name]+'».');
+   result[name]=selected.value;
+  } else result[name]=els[0].value;
+ }
+ if(!['0','1'].includes(result['choose-type-mqtt']) || !['0','1'].includes(result['choose-type-mode']) || !['0','1','2'].includes(result.APTIME)) throw Error('Прошивка вернула неизвестный режим. Сохранение заблокировано.');
+ const time=form.querySelector('select[name="APTIME"]');
+ const known=!!time?.querySelector('option[selected]');
+ const status=id=>{
+  const section=doc.getElementById(id);
+  const text=section?.textContent || '';
+  const match=text.match(/Статус подключения:\s*([^\r\n]+)/);
+  return match ? match[1].trim() : 'Не сообщён прошивкой';
+ };
+ return {values:result,apKnown:known,mqtt:status('mqtt'),wifi:status('wifi')};
+}
+function paint(result,ip) {
+ for(const name of names) field(name).value=result.values[name];
+ apKnown=result.apKnown; apTouched=false;
+ if(!apKnown) field('APTIME').value='0';
+ baseline=snapshot(); loadedIp=ip;
+ $('ap-note').hidden=apKnown;
+ $('mqtt-status').textContent='Статус MQTT по данным устройства: '+result.mqtt;
+ $('wifi-status').textContent='Статус Wi-Fi по данным устройства: '+result.wifi;
+ $('connection').textContent='Подключено · '+ip;
+ $('original').href='http://'+ip+'/';
+ $('device').value=ip;
+ update();
+}
+async function load() {
+ if(busy) return;
+ let ip;
+ try { ip=ipValue(); } catch(e) { showError(e); return; }
+ if(changes().length && !confirm('Перечитать настройки и заменить несохранённые изменения в форме?')) return;
+ lock(true); tell('Читаю настройки устройства…'); log('Загрузка с '+ip);
+ try {
+  const result=parse((await request(ip)).html); paint(result,ip); uncertain=false;
+  tell('Настройки загружены. Можно вносить изменения.',''); log('Форма прочитана успешно.');
+ } catch(e) {
+  tell(e.message,'error'); log('Загрузка не выполнена: '+e.message);
+  baseline=null; loadedIp=null; $('connection').textContent='Состояние не подтверждено';
+ } finally { lock(false); }
+}
+function validate(payload) {
+ for(const name of names) {
+  if(!(name in payload)) continue;
+  const max=field(name).maxLength;
+  if(max>0 && payload[name].length>max) invalid(name,'Слишком длинное значение: '+labels[name]+'.');
+  if(/[\u0000-\u001f\u007f]/.test(payload[name])) invalid(name,'Недопустимый управляющий символ: '+labels[name]+'.');
+ }
+ if(!['0','1','2'].includes(payload.APTIME)) invalid('APTIME','Выберите время выключения точки доступа.');
+ if(!payload.SSIDAP.trim()) invalid('SSIDAP','Укажите имя точки доступа.');
+ if(!payload.topic || payload.topic.length>30 || /[+#]/.test(payload.topic)) invalid('topic','Укажите топик длиной 1–30 символов без подстановок + и #.');
+ if(!/^\d{1,2}$/.test(payload.auto_temp)) invalid('auto_temp','Температура должна быть целым числом от 0 до 99, как в штатной форме.');
+ if(payload['choose-type-mqtt']==='1') {
+  if(!payload.MQTTNAME.trim() || /[\s/:?#]/.test(payload.MQTTNAME)) invalid('MQTTNAME','Укажите адрес MQTT-сервера без схемы, пути и порта. IPv6 этой формой не поддерживается.');
+  if(!/^\d{1,5}$/.test(payload.MQTTPORT) || Number(payload.MQTTPORT)<1 || Number(payload.MQTTPORT)>65535) invalid('MQTTPORT','Порт MQTT должен быть числом от 1 до 65535.');
+ }
+}
+async function save(reset=false) {
+ if(busy || !baseline) return;
+ let ip,payload;
+ try {
+  ip=ipValue();
+  if(ip!==loadedIp) throw Error('Адрес устройства изменён. Сначала загрузите его настройки.');
+  if(uncertain) throw Error('Результат предыдущего сохранения неизвестен. Сначала перечитайте настройки.');
+  payload=snapshot();
+  if(!reset) validate(payload);
+ } catch(e) { showError(e); return; }
+ if(reset) {
+  if(!confirm('Сбросить настройки устройства '+ip+'?\nМогут быть удалены параметры Wi-Fi и MQTT; доступ по текущему IP может пропасть.')) return;
+  payload.reset='on';
+  if(!payload.APTIME) delete payload.APTIME;
+ } else {
+  const modified=changes();
+  if(!modified.length) return;
+  if(modified.some(n=>['SSID','WIFIPASSWORD','SSIDAP','WIFIPASSWORDAP','APTIME'].includes(n)) && !confirm('Изменяются параметры сети или точки доступа. Устройство может стать недоступным по текущему адресу. Сохранить?')) return;
+ }
+ lock(true); tell(reset?'Отправляю команду сброса…':'Отправляю настройки…'); log(reset?'Отправка команды сброса.':'Отправка настроек на '+ip);
+ let acknowledged=false, sendError=null;
+ try {
+  try {
+   await request(ip,'POST',payload,seconds=>tell((reset?'Ожидаю ответ на команду сброса':'Ожидаю ответ на сохранение')+' · '+seconds+' с. Настройки могут быть уже применены; повторной отправки не будет.'));
+   acknowledged=true;
+  } catch(error) {
+   sendError=error;
+   log('Ответ на отправку не подтвердил успех: '+error.message);
+  }
+  if(reset) {
+   if(acknowledged) {
+    baseline=null;loadedIp=null;uncertain=false;$('connection').textContent='После сброса нужно подключиться заново';
+    tell('Устройство ответило HTTP 200 на команду сброса. Сам сброс не проверен. Дождитесь перезапуска и подключитесь заново.','warn');log('Команда сброса принята, выполнение не проверено.');
+   } else {
+    uncertain=true;
+    tell('Результат сброса неизвестен. '+sendError.message+'\nКоманда не будет отправлена повторно. Проверьте состояние устройства и подключитесь заново.','warn');
+   }
+   return;
+  }
+  const checking=acknowledged?'Устройство ответило HTTP 200. Проверяю значения повторным чтением…':'Ответ на сохранение не подтвердил успех. Проверяю настройки чтением, без повторной отправки…';
+  tell(checking);
+  const actual=parse((await request(ip,'GET',null,seconds=>tell(checking+' Ожидание чтения: '+seconds+' с.'))).html);
+  const different=Object.keys(payload).filter(n=>n!=='APTIME' || actual.apKnown).filter(n=>actual.values[n]!==payload[n]);
+  const unknownTime='APTIME' in payload && !actual.apKnown;
+  if(different.length) {
+   uncertain=true;
+   tell('Повторное чтение не подтвердило поля: '+different.map(n=>labels[n]).join(', ')+'.\nВаши введённые значения оставлены в форме. Автоматического повтора отправки не будет. Нажмите «Проверить / перечитать», чтобы увидеть состояние устройства.'+(sendError?'\nОтвет на отправку: '+sendError.message:''),'warn');
+   log('Проверка обнаружила несовпадения: '+different.map(n=>labels[n]).join(', '));
+  } else {
+   paint(actual,ip);uncertain=false;
+   tell((acknowledged?'Устройство ответило HTTP 200; отправленные значения подтверждены повторным чтением.':'Настройки подтверждены повторным чтением. Ответ на запрос сохранения не подтвердил успех, но прочитанные значения совпадают с отправленными.')+(unknownTime?'\nЗначение времени точки доступа прошивка не раскрывает — оно не подтверждено чтением.':'')+'\nСтатус MQTT по данным устройства: '+actual.mqtt+'. Подключение к серверу может установиться позже.',unknownTime?'warn':'');
+   log(acknowledged?'Ответ 200, значения подтверждены чтением.':'Ответ на отправку не подтвердил успех; значения подтверждены чтением.');
+  }
+ } catch(error) {
+  uncertain=true;
+  tell((acknowledged?'Запрос принят устройством (HTTP 200), но проверка сохранения не выполнена: ':'Результат сохранения неизвестен. Проверка чтением тоже не выполнена: ')+error.message+(sendError?'\nОтвет на отправку: '+sendError.message:'')+'\nАвтоматического повтора отправки не будет. Перечитайте настройки; если меняли Wi-Fi, проверьте новый IP.','warn');
+  log('Состояние после отправки не подтверждено: '+error.message);
+ } finally { lock(false); }
+}
+$('load').addEventListener('click',load);
+$('refresh').addEventListener('click',load);
+$('settings').addEventListener('submit',async e=>{
+ e.preventDefault();
+ try { await save(); } catch(error) { lock(false); tell('Ошибка интерфейса: '+error.message,'error'); }
+});
+$('reset').addEventListener('click',()=>save(true));
+$('settings').addEventListener('input',e=>{e.target.removeAttribute('aria-invalid');e.target.removeAttribute('aria-describedby');update();});
+field('APTIME').addEventListener('change',()=>{apTouched=true;update();});
+$('settings').addEventListener('change',e=>{e.target.removeAttribute('aria-invalid');e.target.removeAttribute('aria-describedby');update();});
+$('device').addEventListener('input',()=>{
+ try { $('original').href='http://'+ipValue()+'/'; } catch { $('original').removeAttribute('href'); }
+});
+for(const button of document.querySelectorAll('[data-tab]')) button.addEventListener('click',()=>{
+ selectTab(button.dataset.tab);
+});
+for(const button of document.querySelectorAll('[data-password]')) button.addEventListener('click',()=>{
+ const input=field(button.dataset.password);input.type=input.type==='password'?'text':'password';button.textContent=input.type==='password'?'Показать':'Скрыть';
+});
+update();
+window.addEventListener('beforeunload',e=>{if(changes().length){e.preventDefault();e.returnValue='';}});
+if(location.protocol==='file:') {
+ $('launcher').hidden=false;
+ const quote=s=>"'"+s.replace(/'/g,"'\\''")+"'";
+ const runner='import sys;from pathlib import Path;p=Path(sys.argv[1]);exec(p.read_text(encoding="utf-8").split("<!-- LOCAL_SERVER_BEGIN\\n",1)[1].split("\\nLOCAL_SERVER_END -->",1)[0])';
+ $('command').value='python3 -c '+quote(runner)+' '+quote(decodeURIComponent(location.pathname));
+ $('load').disabled=true;
+ tell('Для подключения запустите локальный сервер командой выше. Открывшаяся страница будет работать с устройством.','warn');
+}
+</script>
+</body>
+</html>
+<!-- LOCAL_SERVER_BEGIN
+import http.client
+import ipaddress
+import json
+import os
+import secrets
+import socket
+import sys
+import threading
+import urllib.parse
+import webbrowser
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+SOURCE = Path(sys.argv[1]).resolve()
+TOKEN = secrets.token_urlsafe(32)
+FIELDS = {'SSID', 'WIFIPASSWORD', 'SSIDAP', 'WIFIPASSWORDAP', 'APTIME', 'choose-type-mqtt', 'MQTTNAME', 'MQTTPORT', 'MQTTLOGIN', 'MQTTPASSWORD', 'topic', 'choose-type-mode', 'auto_temp', 'reset'}
+NETWORKS = tuple(ipaddress.ip_network(n) for n in ('10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'))
+
+class Handler(BaseHTTPRequestHandler):
+    protocol_version = 'HTTP/1.0'
+
+    def log_message(self, *_):
+        pass
+
+    def send(self, status, data, kind='application/json; charset=utf-8'):
+        raw = data if isinstance(data, bytes) else json.dumps(data, ensure_ascii=False).encode('utf-8')
+        self.send_response(status)
+        self.send_header('Content-Type', kind)
+        self.send_header('Content-Length', str(len(raw)))
+        self.send_header('Cache-Control', 'no-store')
+        self.send_header('X-Content-Type-Options', 'nosniff')
+        self.send_header('Referrer-Policy', 'no-referrer')
+        self.send_header('Content-Security-Policy', "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
+        self.end_headers()
+        try:
+            self.wfile.write(raw)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
+    def do_GET(self):
+        self.handle_request()
+
+    def do_POST(self):
+        self.handle_request()
+
+    def handle_request(self):
+        host = '127.0.0.1:' + str(self.server.server_port)
+        if self.headers.get('Host') != host:
+            self.send(403, {'error': 'Недопустимый адрес локального сервера.'})
+            return
+        origin = self.headers.get('Origin')
+        if origin and origin != 'http://' + host:
+            self.send(403, {'error': 'Запрос с посторонней страницы запрещён.'})
+            return
+        url = urllib.parse.urlsplit(self.path)
+        if url.path == '/' and not url.query and self.command == 'GET':
+            self.send(200, SOURCE.read_bytes().replace(b'__LOCAL_TOKEN__', TOKEN.encode()), 'text/html; charset=utf-8')
+            return
+        if url.path != '/api/device':
+            self.send(404, {'error': 'Страница не найдена.'})
+            return
+        if not secrets.compare_digest(self.headers.get('X-Local-Token', ''), TOKEN):
+            self.send(403, {'error': 'Недействительный ключ сессии. Обновите страницу.'})
+            return
+        try:
+            query = urllib.parse.parse_qs(url.query)
+            if set(query) != {'ip'} or len(query['ip']) != 1:
+                raise ValueError('Укажите ровно один IPv4-адрес.')
+            address = ipaddress.IPv4Address(query['ip'][0])
+            if not any(address in net for net in NETWORKS):
+                raise ValueError('Разрешены только частные IPv4-адреса локальной сети.')
+            payload = None
+            headers = {'Connection': 'close', 'Cache-Control': 'no-cache'}
+            if self.command == 'POST':
+                if self.headers.get('Transfer-Encoding'):
+                    raise ValueError('Неподдерживаемый формат запроса.')
+                length = int(self.headers.get('Content-Length', '0'))
+                if not 0 < length <= 16384:
+                    raise ValueError('Недопустимый размер запроса.')
+                self.connection.settimeout(5)
+                raw = self.rfile.read(length)
+                data = json.loads(raw)
+                if not isinstance(data, dict) or not data or set(data) - FIELDS or any(not isinstance(v, str) or len(v) > 256 for v in data.values()):
+                    raise ValueError('Некорректные поля настроек.')
+                if 'reset' in data and data['reset'] != 'on':
+                    raise ValueError('Некорректная команда сброса.')
+                payload = json.dumps(data, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+                headers['Content-Type'] = 'text/plain;charset=UTF-8'
+        except (ValueError, TypeError, UnicodeError, socket.timeout) as exc:
+            self.send(400, {'error': 'Некорректный запрос. ' + (str(exc) if not isinstance(exc, json.JSONDecodeError) else 'Ожидается JSON.')})
+            return
+        conn = http.client.HTTPConnection(str(address), 80, timeout=12)
+        try:
+            conn.request(self.command, '/newdata' if self.command == 'POST' else '/', body=payload, headers=headers)
+            response = conn.getresponse()
+            body = response.read(1048577)
+            if len(body) > 1048576:
+                self.send(502, {'error': 'Ответ устройства слишком большой.'})
+                return
+            result = {'status': response.status, 'reason': response.reason}
+            if self.command == 'GET' and response.status == 200:
+                result['html'] = body.decode('utf-8', errors='replace')
+            self.send(200, result)
+        except (socket.timeout, TimeoutError):
+            self.send(504, {'error': 'Устройство не ответило за 12 секунд. Проверьте его адрес и сеть. Если это было сохранение, результат неизвестен.'})
+        except (OSError, http.client.HTTPException):
+            self.send(502, {'error': 'Не удалось связаться с устройством или соединение оборвалось. Если это было сохранение, результат неизвестен.'})
+        finally:
+            conn.close()
+
+if __name__ == '__main__':
+    server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+    server.daemon_threads = True
+    url = 'http://127.0.0.1:' + str(server.server_port) + '/'
+    print('VAKIO — локальный интерфейс: ' + url, flush=True)
+    print('Для остановки нажмите Ctrl+C. Настройки и пароли на диск не записываются.', flush=True)
+    if os.environ.get('VAKIO_NO_BROWSER') != '1':
+        threading.Timer(0.3, lambda: webbrowser.open(url)).start()
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print('\nСервер остановлен.', flush=True)
+    finally:
+        server.server_close()
+LOCAL_SERVER_END -->

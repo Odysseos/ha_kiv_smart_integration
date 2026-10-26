@@ -52,6 +52,13 @@ async def main():
             assert 'javascript' in response.headers['Content-Type']
             assert await response.text() == (ROOT/'custom_components/vakio_kiv_local/www/overview.js').read_text()
             assert response.headers.get('Cache-Control') != 'public, max-age=2678400'
+            response = await client.get("/vakio_kiv_local/settings.html")
+            assert response.status == 200
+            assert await response.text() == (ROOT / "custom_components/vakio_kiv_local/www/settings_download.html").read_text()
+            for filename in ("vakio_settings.html", "vakio_settings.py"):
+                response = await client.get(f"/vakio_kiv_local/{filename}")
+                assert response.status == 200
+                assert await response.text() == (ROOT / "custom_components/vakio_kiv_local/www" / filename).read_text()
         await hass.async_stop()
     print('PASS: headless HA; contained registration error; one extra-module URL; actual HA HTTP route and JS response')
 

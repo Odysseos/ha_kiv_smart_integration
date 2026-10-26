@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Load the optional browser extension through HA's extra module API."""
+"""Serve browser assets and load the optional Overview extension."""
 import logging
 from pathlib import Path
 
@@ -22,7 +22,13 @@ async def async_register(hass):
         return
     try:
         await hass.http.async_register_static_paths([
-            StaticPathConfig(_URL_PATH, str(Path(__file__).parent / "www" / "overview.js"), False)
+            StaticPathConfig(_URL_PATH, str(Path(__file__).parent / "www" / "overview.js"), False),
+            StaticPathConfig(f"/{DOMAIN}/settings.html",
+                str(Path(__file__).parent / "www" / "settings_download.html"), False),
+            StaticPathConfig(f"/{DOMAIN}/vakio_settings.html",
+                str(Path(__file__).parent / "www" / "vakio_settings.html"), False),
+            StaticPathConfig(f"/{DOMAIN}/vakio_settings.py",
+                str(Path(__file__).parent / "www" / "vakio_settings.py"), False)
         ])
         frontend.add_extra_js_url(hass, _MODULE_URL)
     except Exception:

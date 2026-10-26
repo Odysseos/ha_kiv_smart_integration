@@ -60,5 +60,8 @@ jobs:
       - name: Validate HA module registration and HTTP route
         run: python tests/validate_frontend.py
 
+      - name: Validate standalone device settings server
+        run: python tests/validate_device_settings.py
+
       - name: Validate repository structure and documentation
         run: python tests/validate_project.py

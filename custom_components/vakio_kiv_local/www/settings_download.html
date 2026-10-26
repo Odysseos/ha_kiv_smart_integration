@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vakio KIV Local — настройки прошивки</title>
+<style>
+:root{font:16px/1.6 system-ui,sans-serif;color-scheme:light dark}body{max-width:760px;margin:40px auto;padding:0 24px}a{color:#219d97}code{overflow-wrap:anywhere}li{margin:12px 0}
+</style>
+</head>
+<body>
+<h1>Настройки прошивки Vakio</h1>
+<p>Для работы с устройством скачайте страницу и программу запуска на компьютер, подключённый к его локальной сети. Устанавливать Python или запускать программу внутри Home Assistant не требуется.</p>
+<ol>
+<li>Сохраните оба файла в одну папку:
+<ul>
+<li><a href="vakio_settings.html" download="vakio_settings.html">Скачать страницу vakio_settings.html</a></li>
+<li><a href="vakio_settings.py" download="vakio_settings.py">Скачать программу запуска vakio_settings.py</a></li>
+</ul></li>
+<li>Установите Python 3, если его ещё нет. Дополнительные пакеты не нужны.</li>
+<li>Откройте терминал в папке с файлами и выполните <code>python3 vakio_settings.py</code>. В Windows можно использовать <code>py -3 vakio_settings.py</code>.</li>
+<li>Браузер откроет страницу на <code>http://127.0.0.1:…/</code>. Если он не открылся, скопируйте адрес из терминала.</li>
+<li>Введите IP устройства и нажмите «Подключиться и загрузить». Загрузка только читает настройки. Для записи внесите изменения и нажмите «Сохранить изменения».</li>
+</ol>
+<p>Держите терминал открытым во время работы. Для остановки нажмите Ctrl+C.</p>
+<p>Прошивка не сообщает время отключения точки доступа. Страница подставляет 15 минут — значение по умолчанию, подтверждённое техподдержкой Vakio. Оно отправляется вместе с остальными настройками.</p>
+<p>Это отдельный инструмент настройки прошивки. Параметры подключения MQTT-клиента HA и настройки записи Vakio KIV Local он не меняет.</p>
+</body>
+</html>
