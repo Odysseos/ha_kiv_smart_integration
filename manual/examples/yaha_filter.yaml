@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 vakio-kiv-ha contributors
+
+# Фрагмент для СУЩЕСТВУЮЩЕЙ конфигурации YaHA. Не подключать отдельным пакетом.
+# Добавьте glob в текущий список, сохранив все свои остальные правила.
+# В настройках YaHA должен быть выбран способ фильтрации через YAML.
+yandex_smart_home:
+  filter:
+    include_entity_globs:
+      - cover.vakio_*

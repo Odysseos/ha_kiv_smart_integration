@@ -1,0 +1,37 @@
+{
+  "title": "Vakio KIV Local",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vakio KIV Local",
+        "description": "Enter the device MQTT prefix. Uses the MQTT integration in HA. First setup opens the damper using the seasonal policy; see README.",
+        "data": {
+          "name": "Device name",
+          "topic_prefix": "MQTT prefix",
+          "boot_report_window": "Report delay, seconds"
+        }
+      }
+    },
+    "error": {
+      "invalid_config": "Check the name and prefix; MQTT + and # are not allowed."
+    },
+    "abort": {
+      "already_configured": "This MQTT prefix is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "data": {
+          "boot_report_window": "Report delay, seconds",
+          "overview_climate": "Damper in Climate group (experimental)"
+        },
+        "description": "Move the damper tile into Climate in its room on the automatic Overview. Refresh the browser after changing this option. Uses internal HA frontend APIs."
+      }
+    },
+    "error": {
+      "invalid_config": "Enter a finite number between 1 and 15."
+    }
+  }
+}

@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 vakio-kiv-ha contributors
+
+# Добавить packages в существующую секцию homeassistant.
+# Это дополнение, а не замена всего configuration.yaml.
+homeassistant:
+  packages:
+    vakio_cover: !include includes/vakio_cover.yaml

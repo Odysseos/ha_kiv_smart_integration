@@ -1,0 +1,70 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 vakio-kiv-ha contributors
+
+# Один файл для всех экземпляров. Для каждого клапана — свои ID и input_text.
+# Без YaHA удалите секцию yandex_smart_home целиком, оставив input_text и automation.
+input_text:
+  vakio_kiv_cover_memory:
+    name: Vakio KIV — сохранённое состояние
+    max: 255
+    icon: mdi:memory
+
+automation:
+  - id: vakio_kiv_cover_automation
+    alias: Vakio KIV — приточный клапан
+    initial_state: true
+    use_blueprint:
+      path: vakio_cover.yaml
+      input:
+        # Именно префикс, установленный в настройках MQTT самого прибора.
+        topic_prefix: vakio_kiv
+        # Постоянный уникальный ID экземпляра в HA; не обязан совпадать с топиком.
+        id_prefix: vakio_kiv_cover
+        device_name: Vakio KIV — приточный клапан
+        memory_entity: input_text.vakio_kiv_cover_memory
+        boot_report_window: 3
+
+# Не добавляет устройство в фильтр передачи автоматически. См. README.
+yandex_smart_home:
+  entity_config:
+    cover.vakio_kiv_cover:
+      name: Приточный клапан
+      type: ventilation
+      state_template: >-
+        {{ {'open': 'on', 'closed': 'off'}.get(states('cover.vakio_kiv_cover'), 'unavailable') }}
+      turn_on:
+        action: select.select_option
+        target:
+          entity_id: select.vakio_kiv_cover_selection
+        data:
+          option: Полное
+      turn_off:
+        action: select.select_option
+        target:
+          entity_id: select.vakio_kiv_cover_selection
+        data:
+          option: Нет
+      modes:
+        program:
+          auto: Авто
+          low: Малое
+          medium: Среднее
+          high: Большое
+          max: Полное
+      custom_modes:
+        program:
+          state_template: >-
+            {{ 'off' if is_state('cover.vakio_kiv_cover', 'closed') else states('select.vakio_kiv_cover_selection') }}
+          set_mode:
+            action: select.select_option
+            target:
+              entity_id: select.vakio_kiv_cover_selection
+            data:
+              option: "{{ mode }}"
+      custom_ranges:
+        open: false
+      properties:
+        - type: temperature
+          entity: sensor.vakio_kiv_cover_temperature
+        - type: humidity
+          entity: sensor.vakio_kiv_cover_humidity

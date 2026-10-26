@@ -1,0 +1,10 @@
+get_yaha_config:
+  name: Получить конфигурацию YaHA
+  description: Возвращает настройки с фактическими entity ID; не изменяет конфигурацию YaHA.
+  fields:
+    device_id:
+      name: Прибор
+      required: true
+      selector:
+        device:
+          integration: vakio_kiv_local

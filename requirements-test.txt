@@ -1,0 +1,23 @@
+# Только для разработки в отдельном Python 3.13 venv. В HA устанавливать не нужно.
+homeassistant==2025.10.4
+PyYAML==6.0.2
+paho-mqtt==2.1.0
+
+# Схемы YaHA.
+pydantic==2.11.9
+
+# Совместимость с aiodns 3.5.0 из HA.
+pycares==4.11.0
+
+# Зависимости проверки конфигурации HA и local_calendar.
+colorlog==6.9.0
+ical==11.0.0
+
+# Косвенные импорты компонента camera через YaHA.
+numpy==2.5.4
+av==19.0.2
+ha-ffmpeg==3.2.2
+
+# Версия, требуемая camera в HA 2025.10.4.
+# Совместима с системной libturbojpeg из Ubuntu 24.04.
+PyTurboJPEG==1.8.0

@@ -1,0 +1,317 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 vakio-kiv-ha contributors
+
+blueprint:
+  name: Vakio KIV Smart — клапан с сохранением состояния
+  description: >-
+    Cover, список «Открытие заслонки» с Авто и датчики через MQTT Discovery.
+    Отдельный input_text хранит mode/power/gate каждого экземпляра.
+    Состояние сохраняется по MQTT-командам и сообщениям кнопок.
+    При запуске HA и регистрации клапана сохранённое состояние отправляется прибору.
+    При пустой памяти: май–сентябрь 100%, апрель/октябрь 75%, март/ноябрь 50%,
+    декабрь–февраль 25%. Сезон определяется в часовом поясе HA только при инициализации.
+  domain: automation
+  homeassistant:
+    min_version: "2025.10.0"
+  input:
+    topic_prefix:
+      name: MQTT-префикс прибора
+      selector:
+        text: {}
+    id_prefix:
+      name: Уникальный префикс устройства HA
+      description: Латинские буквы, цифры и подчёркивание. Отдельный для каждого экземпляра.
+      selector:
+        text: {}
+    device_name:
+      name: Название устройства
+      selector:
+        text: {}
+    memory_entity:
+      name: Память этого устройства
+      description: Отдельный input_text с max=255, без initial. Не используйте один помощник для разных клапанов.
+      selector:
+        entity:
+          domain: input_text
+    boot_report_window:
+      name: Задержка принятия отчёта, секунд
+      description: Защита от стартового capabilities перед system/auth. Новые команды и регистрация имеют приоритет над более ранними отчётами.
+      default: 3
+      selector:
+        number:
+          min: 1
+          max: 15
+          step: 1
+          unit_of_measurement: s
+
+trigger_variables:
+  raw_prefix: !input topic_prefix
+  raw_id: !input id_prefix
+
+variables:
+  topic_prefix: !input topic_prefix
+  id_prefix: !input id_prefix
+  device_name: !input device_name
+  memory_entity: !input memory_entity
+  command_topic: "server/{{ topic_prefix }}/kivsmart/mode"
+  ui_command_topic: "vakio_ha/{{ id_prefix }}/json/command"
+  bridge: "vakio_ha/{{ id_prefix }}/json"
+
+triggers:
+  - trigger: homeassistant
+    event: start
+    id: restart
+  - trigger: mqtt
+    topic: homeassistant/status
+    payload: "online"
+    id: restart
+  - trigger: mqtt
+    topic: "server/{{ raw_prefix }}/kivsmart/mode"
+    id: command
+  - trigger: mqtt
+    topic: "vakio_ha/{{ raw_id }}/json/command"
+    id: ui_command
+  - trigger: mqtt
+    topic: "{{ raw_prefix }}/workmode"
+    id: workmode
+  - trigger: mqtt
+    topic: "device/{{ raw_prefix }}/kivsmart/mode"
+    id: report
+  - trigger: mqtt
+    topic: "device/{{ raw_prefix }}/kivsmart/system"
+    value_template: >-
+      {% set msg = value | from_json({}) %}
+      {{ msg.get('type', '') if msg is mapping else '' }}
+    payload: auth
+    id: boot
+
+actions:
+  - variables:
+      event_received: "{{ now().timestamp() }}"
+  # Новый input_text без initial существует со значением unknown: это пустая
+  # память, которую нужно инициализировать, а не ожидать её заполнения извне.
+  # Ждём только появления самой сущности или завершения unavailable.
+  - wait_template: "{{ states[memory_entity] is not none and states(memory_entity) != 'unavailable' }}"
+    timeout: "00:00:30"
+    continue_on_timeout: false
+  - variables:
+      event_kind: "{{ trigger.id | default('restart', true) if trigger is defined else 'restart' }}"
+      saved: "{{ states(memory_entity) | from_json({}) }}"
+      saved_valid: >-
+        {{ saved is mapping
+           and saved.get('mode') in ['manual', 'super_auto']
+           and saved.get('power') in ['on', 'off']
+           and saved.get('gate') in [1, 2, 3, 4] }}
+  - if: "{{ not saved_valid }}"
+    then:
+      - variables:
+          seasonal_gate: >-
+            {% set month = now().month %}
+            {{ 4 if month in [5, 6, 7, 8, 9] else
+               3 if month in [4, 10] else
+               2 if month in [3, 11] else 1 }}
+      - action: input_text.set_value
+        target:
+          entity_id: "{{ memory_entity }}"
+        data:
+          value: "{{ {'mode': 'manual', 'power': 'on', 'gate': seasonal_gate | int, '_ts': 0} | to_json }}"
+
+  - choose:
+      - conditions: "{{ event_kind == 'restart' }}"
+        sequence:
+          - action: mqtt.publish
+            data:
+              topic: "homeassistant/device/{{ id_prefix }}/config"
+              retain: true
+              qos: 1
+              payload: >-
+                {{ {
+                  "device": {
+                    "identifiers": [id_prefix ~ "_device"],
+                    "manufacturer": "Vakio",
+                    "model": "KIV Smart",
+                    "name": device_name
+                  },
+                  "origin": {"name": "Vakio cover JSON blueprint"},
+                  "components": {
+                    "cover": {
+                      "platform": "cover",
+                      "name": "Заслонка",
+                      "unique_id": id_prefix,
+                      "default_entity_id": "cover." ~ id_prefix,
+                      "device_class": "damper",
+                      "icon": "mdi:hvac",
+                      "command_topic": ui_command_topic,
+                      "payload_open": {
+                        "capabilities": {"mode": "manual", "on_off": "on", "gate": 4}
+                      } | to_json,
+                      "payload_close": {
+                        "capabilities": {"mode": "manual", "on_off": "off"}
+                      } | to_json,
+                      "payload_stop": none,
+                      "state_topic": bridge ~ "/cover/state",
+                      "state_open": "open",
+                      "state_closed": "closed",
+                      "position_topic": bridge ~ "/cover/position",
+                      "set_position_topic": ui_command_topic,
+                      "set_position_template":
+                        "{% set p = position | float(0) %}{% set level = [1, [4, ((p + 12.5) / 25) | int] | min] | max %}{{ {'capabilities': {'mode': 'manual', 'on_off': 'off'} if p <= 0 else {'mode': 'manual', 'on_off': 'on', 'gate': level}} | to_json }}",
+                      "position_closed": 0,
+                      "position_open": 100,
+                      "optimistic": false,
+                      "retain": false
+                    },
+                    "selection": {
+                      "platform": "select",
+                      "name": "Открытие заслонки",
+                      "unique_id": id_prefix ~ "_selection",
+                      "default_entity_id": "select." ~ id_prefix ~ "_selection",
+                      "icon": "mdi:hvac",
+                      "state_topic": bridge ~ "/selection/state",
+                      "command_topic": ui_command_topic,
+                      "command_template":
+                        "{{ {'capabilities': {'mode': 'super_auto', 'on_off': 'on'} if value == 'Авто' else {'mode': 'manual', 'on_off': 'off'} if value == 'Нет' else {'mode': 'manual', 'on_off': 'on', 'gate': {'Малое': 1, 'Среднее': 2, 'Большое': 3, 'Полное': 4}[value]}} | to_json }}",
+                      "options": ["Авто", "Нет", "Малое", "Среднее", "Большое", "Полное"],
+                      "optimistic": false,
+                      "retain": false
+                    },
+                    "temperature": {
+                      "platform": "sensor",
+                      "name": "Температура",
+                      "unique_id": id_prefix ~ "_temperature",
+                      "default_entity_id": "sensor." ~ id_prefix ~ "_temperature",
+                      "state_topic": topic_prefix ~ "/temp",
+                      "value_template": "{{ value | int(0) }}",
+                      "unit_of_measurement": "°C",
+                      "device_class": "temperature",
+                      "state_class": "measurement"
+                    },
+                    "humidity": {
+                      "platform": "sensor",
+                      "name": "Влажность",
+                      "unique_id": id_prefix ~ "_humidity",
+                      "default_entity_id": "sensor." ~ id_prefix ~ "_humidity",
+                      "state_topic": topic_prefix ~ "/hud",
+                      "value_template": "{{ value | int(0) }}",
+                      "unit_of_measurement": "%",
+                      "device_class": "humidity",
+                      "state_class": "measurement"
+                    }
+                  }
+                } | to_json }}
+
+  - choose:
+      - conditions: "{{ event_kind in ['restart', 'boot'] }}"
+        sequence:
+          - variables:
+              target_state: "{{ states(memory_entity) | from_json }}"
+          - action: input_text.set_value
+            target:
+              entity_id: "{{ memory_entity }}"
+            data:
+              value: "{{ dict(target_state, _ts=event_received) | to_json }}"
+
+      - conditions: "{{ event_kind in ['ui_command', 'command', 'report', 'workmode'] }}"
+        sequence:
+          - variables:
+              message: "{{ trigger.payload | from_json({}) }}"
+              caps: >-
+                {{ {'mode': trigger.payload} if event_kind == 'workmode'
+                   else message.get('capabilities', {}) if message is mapping else {} }}
+          # settings/relation, некорректный JSON и неизвестные значения не меняют память.
+          - condition: template
+            value_template: >-
+              {{ caps is mapping and (
+                caps.get('mode') in ['manual', 'super_auto'] or
+                caps.get('on_off') in ['on', 'off'] or
+                caps.get('gate') in [1, 2, 3, 4]) }}
+          - if: "{{ event_kind in ['report', 'workmode'] }}"
+            then:
+              # Дать system/auth обработаться параллельно и отметить память.
+              # Отчёт старше регистрации или новой команды затем будет отброшен.
+              - delay:
+                  seconds: !input boot_report_window
+          - condition: template
+            value_template: >-
+              {% set latest = states(memory_entity) | from_json %}
+              {{ latest.get('_ts', 0) | float(0) <= event_received | float }}
+          - variables:
+              previous: "{{ states(memory_entity) | from_json }}"
+              updated: >-
+                {{ {
+                  'mode': caps.mode if caps.get('mode') in ['manual', 'super_auto'] else previous.mode,
+                  'power': caps.on_off if caps.get('on_off') in ['on', 'off'] else previous.power,
+                  'gate': caps.gate if caps.get('gate') in [1, 2, 3, 4] else previous.gate,
+                  '_ts': event_received | float
+                } }}
+          - action: input_text.set_value
+            target:
+              entity_id: "{{ memory_entity }}"
+            data:
+              value: "{{ updated | to_json }}"
+
+  # UI идёт через отдельный командный топик: сначала устанавливаем рабочий
+  # режим, затем положение. JSON mode прошивка KIV 1.1.8 не применяет.
+  # Внешнюю JSON-команду с mode тоже дополняем рабочим переключением режима.
+  # Собственные JSON-публикации mode не содержат и повторной отправки не вызывают.
+  - if: >-
+      {{ event_kind in ['restart', 'boot', 'ui_command']
+         or (event_kind == 'command' and caps.get('mode') in ['manual', 'super_auto']) }}
+    then:
+      - variables:
+          outgoing: "{{ states(memory_entity) | from_json }}"
+      - if: "{{ outgoing.mode == 'manual' }}"
+        then:
+          - action: mqtt.publish
+            data:
+              topic: "{{ topic_prefix }}/workmode"
+              payload: manual
+              qos: 1
+              retain: false
+      - action: mqtt.publish
+        data:
+          topic: "{{ command_topic }}"
+          qos: 1
+          retain: false
+          payload: >-
+            {% set command = {'on_off': outgoing.power} %}
+            {% if outgoing.mode == 'manual' and outgoing.power == 'on' %}
+              {% set command = dict(command, gate=outgoing.gate) %}
+            {% endif %}
+            {{ {'capabilities': command} | to_json }}
+      - if: "{{ outgoing.mode == 'super_auto' }}"
+        then:
+          - action: mqtt.publish
+            data:
+              topic: "{{ topic_prefix }}/workmode"
+              payload: super_auto
+              qos: 1
+              retain: false
+
+  # Здесь обновляем MQTT-сущности из одной и той же сохранённой записи.
+  # Изменение помощника само по себе не запускает отправку команды.
+  - action: mqtt.publish
+    data:
+      topic: "{{ bridge }}/cover/state"
+      payload: >-
+        {% set current = states(memory_entity) | from_json %}
+        {{ 'closed' if current.power == 'off' else 'open' }}
+      retain: true
+  - action: mqtt.publish
+    data:
+      topic: "{{ bridge }}/cover/position"
+      payload: >-
+        {% set current = states(memory_entity) | from_json %}
+        {{ 0 if current.power == 'off' else current.gate * 25 }}
+      retain: true
+  - action: mqtt.publish
+    data:
+      topic: "{{ bridge }}/selection/state"
+      payload: >-
+        {% set current = states(memory_entity) | from_json %}
+        {{ 'Авто' if current.mode == 'super_auto' else 'Нет' if current.power == 'off'
+           else {1: 'Малое', 2: 'Среднее', 3: 'Большое', 4: 'Полное'}[current.gate] }}
+      retain: true
+
+mode: parallel
+max: 100

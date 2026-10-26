@@ -1,0 +1,20 @@
+{
+  "domain": "vakio_kiv_local",
+  "name": "Vakio KIV Local",
+  "codeowners": [
+    "@Odysseos"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "mqtt"
+  ],
+  "documentation": "https://github.com/Odysseos/ha_vakio_kiv_local",
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/Odysseos/ha_vakio_kiv_local/issues",
+  "requirements": [],
+  "version": "0.4.0",
+  "after_dependencies": [
+    "frontend"
+  ]
+}
