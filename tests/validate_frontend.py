@@ -44,7 +44,7 @@ async def main():
         await async_register(hass)
         assert len(urls.urls) == len(changes) == 1
         module_url = next(iter(urls.urls))
-        assert module_url.endswith('/overview.js?v=0.4.0')
+        assert module_url.endswith('/overview.js?v=0.5.0')
         # Exercise the actual HTTP static path, not a fake registration callback.
         async with TestClient(TestServer(hass.http.app)) as client:
             response = await client.get(module_url)

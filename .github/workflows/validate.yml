@@ -54,6 +54,11 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}/.deps/yaha
         run: python tests/validate_integration.py
 
+      - name: Validate generated YaHA file for multiple devices
+        env:
+          PYTHONPATH: ${{ github.workspace }}/.deps/yaha
+        run: python tests/validate_yaha_export.py
+
       - name: Validate Overview browser module
         run: node tests/validate_frontend.mjs
 
@@ -65,3 +70,22 @@ jobs:
 
       - name: Validate repository structure and documentation
         run: python tests/validate_project.py
+
+  hacs-validation:
+    name: HACS Validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Validate HACS repository
+        uses: hacs/action@main
+        with:
+          category: integration
+
+  hassfest:
+    name: Hassfest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate Home Assistant integration metadata
+        uses: home-assistant/actions/hassfest@master

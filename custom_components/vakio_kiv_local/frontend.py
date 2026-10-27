@@ -10,7 +10,7 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 _URL_PATH = f"/{DOMAIN}/overview.js"
-_MODULE_URL = f"{_URL_PATH}?v=0.4.0"
+_MODULE_URL = f"{_URL_PATH}?v=0.5.0"
 _DATA_KEY = f"{DOMAIN}_frontend"
 
 

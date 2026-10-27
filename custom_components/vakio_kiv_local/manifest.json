@@ -1,6 +1,10 @@
 {
   "domain": "vakio_kiv_local",
   "name": "Vakio KIV Local",
+  "after_dependencies": [
+    "frontend",
+    "http"
+  ],
   "codeowners": [
     "@Odysseos"
   ],
@@ -13,8 +17,5 @@
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/Odysseos/ha_vakio_kiv_local/issues",
   "requirements": [],
-  "version": "0.4.0",
-  "after_dependencies": [
-    "frontend"
-  ]
+  "version": "0.5.0"
 }

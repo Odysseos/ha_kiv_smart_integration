@@ -8,3 +8,10 @@ get_yaha_config:
       selector:
         device:
           integration: vakio_kiv_local
+
+export_yaha_config:
+  name: Сохранить конфигурацию всех клапанов для YaHA
+  description: >-
+    Создаёт или обновляет includes/yandex_smart_home_vakio.yaml
+    для всех добавленных клапанов. Остальные файлы не изменяет.
+    После выполнения примените настройки YaHA. Доступно администратору.
